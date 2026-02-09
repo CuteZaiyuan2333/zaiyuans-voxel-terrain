@@ -39,14 +39,14 @@ public static class AsyncChunkJobs
     public static void EnqueueCompletedMesh(MeshBuildResult r) => CompletedMesh.Enqueue(r);
     public static bool TryDequeueMesh(out MeshBuildResult r) => CompletedMesh.TryDequeue(out r);
 
-    public static void StartTerrainJob(ChunkEntity e, Vector3I chunkPos, int seed, IChunkGenerator generator)
+    public static void StartTerrainJob(ChunkEntity e, Vector3I chunkPos, int seed, IChunkGenerator generator, BlockLibrary blockLibrary = null)
     {
         Task.Run(() =>
         {
             try
             {
                 var data = new VoxelData();
-                generator.Generate(chunkPos, data, seed);
+                generator.Generate(chunkPos, data, seed, blockLibrary);
                 var bytes = new byte[VoxelConstants.ChunkVolume];
                 data.AsSpan().Slice(0, VoxelConstants.ChunkVolume).CopyTo(bytes);
                 EnqueueCompletedTerrain(new TerrainGenResult { Entity = e, Data = bytes });

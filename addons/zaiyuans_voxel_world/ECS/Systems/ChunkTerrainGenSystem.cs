@@ -31,7 +31,7 @@ public sealed class ChunkTerrainGenSystem : IVoxelSystem
                 if (ctx.TerrainSubmitted.Contains(e)) continue;
 
                 var pos = world.GetPosition(e);
-                AsyncChunkJobs.StartTerrainJob(e, pos.Value, ctx.Seed, ctx.Generator);
+                AsyncChunkJobs.StartTerrainJob(e, pos.Value, ctx.Seed, ctx.Generator, ctx.BlockLibrary);
                 ctx.TerrainSubmitted.Add(e);
                 ctx.TerrainInFlightCount++;
                 budget--;
@@ -46,7 +46,7 @@ public sealed class ChunkTerrainGenSystem : IVoxelSystem
 
             var data = world.GetVoxelData(e);
             var pos = world.GetPosition(e);
-            ctx.Generator.Generate(pos.Value, data, ctx.Seed);
+            ctx.Generator.Generate(pos.Value, data, ctx.Seed, ctx.BlockLibrary);
             world.SetState(e, ChunkState.Dirty);
             world.ApplyPendingBlocksForChunk(ctx, e);
             budget--;

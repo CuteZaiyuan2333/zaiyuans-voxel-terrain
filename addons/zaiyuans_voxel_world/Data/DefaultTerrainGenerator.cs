@@ -12,7 +12,7 @@ public sealed class DefaultTerrainGenerator : IChunkGenerator
     private FastNoiseLite _noise;
     private int _lastSeed = int.MinValue;
 
-    public void Generate(Vector3I chunkPos, VoxelData data, int seed)
+    public void Generate(Vector3I chunkPos, VoxelData data, int seed, BlockLibrary blockLibrary = null)
     {
         if (_noise == null || _lastSeed != seed)
         {
@@ -22,6 +22,14 @@ public sealed class DefaultTerrainGenerator : IChunkGenerator
             _lastSeed = seed;
         }
         var noise = _noise;
+
+        byte idAir = blockLibrary != null ? blockLibrary.GetIdByName("Air") : (byte)BlockId.Air;
+        byte idGrass = blockLibrary != null ? blockLibrary.GetIdByName("Grass") : (byte)BlockId.Grass;
+        byte idDirt = blockLibrary != null ? blockLibrary.GetIdByName("Dirt") : (byte)BlockId.Dirt;
+        byte idStone = blockLibrary != null ? blockLibrary.GetIdByName("Stone") : (byte)BlockId.Stone;
+        if (blockLibrary != null && idGrass == 0) idGrass = (byte)BlockId.Grass;
+        if (blockLibrary != null && idDirt == 0) idDirt = (byte)BlockId.Dirt;
+        if (blockLibrary != null && idStone == 0) idStone = (byte)BlockId.Stone;
 
         int ox = chunkPos.X * VoxelConstants.ChunkSize;
         int oy = chunkPos.Y * VoxelConstants.ChunkSize;
@@ -40,13 +48,13 @@ public sealed class DefaultTerrainGenerator : IChunkGenerator
 
             byte blockId;
             if (wy > height)
-                blockId = (byte)BlockId.Air;
+                blockId = idAir;
             else if (wy == height)
-                blockId = (byte)BlockId.Grass;
+                blockId = idGrass;
             else if (wy >= height - 3)
-                blockId = (byte)BlockId.Dirt;
+                blockId = idDirt;
             else
-                blockId = (byte)BlockId.Stone;
+                blockId = idStone;
 
             data.Set(lx, ly, lz, blockId);
         }

@@ -29,6 +29,8 @@ public partial class VoxelWorld : Node
     [Export] public bool UseAsyncMesh { get; set; } = false;
     /// <summary>Max chunk radius from origin (0 = no limit). GetBlock returns Air and SetBlock returns false outside.</summary>
     [Export] public int MaxChunkRadius { get; set; } = 0;
+    /// <summary>Optional block list for generators (look up by name). When null, generators use built-in BlockId.</summary>
+    [Export] public BlockLibrary BlockLibrary { get; set; }
     public Vector3 ObserverPosition { get; set; }
     public IChunkGenerator Generator { get; set; }
 
@@ -79,6 +81,7 @@ public partial class VoxelWorld : Node
         RunContext.UseAsyncTerrain = UseAsyncTerrain;
         RunContext.UseAsyncMesh = UseAsyncMesh;
         RunContext.Generator = Generator ?? new DefaultTerrainGenerator();
+        RunContext.BlockLibrary = BlockLibrary;
         EcsWorld.Run(delta, RunContext);
 
         foreach (var p in RunContext.PendingChunkLoaded)

@@ -20,6 +20,7 @@ public sealed class EcsRunContext
     public bool UseGreedyMeshing { get; set; } = true;
     public bool UseAsyncTerrain { get; set; } = false;
     public bool UseAsyncMesh { get; set; } = false;
+    public BlockLibrary BlockLibrary { get; set; }
     public int TerrainInFlightCount { get; set; }
     public int MeshInFlightCount { get; set; }
     public HashSet<ChunkEntity> TerrainSubmitted { get; } = new();

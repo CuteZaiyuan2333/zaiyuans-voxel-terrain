@@ -7,8 +7,9 @@
 ## 一、快速开始
 
 1. 在场景中添加节点：**节点** → **其他节点** → 搜索 **VoxelTerrain**，添加。
-2. （可选）将相机或玩家节点拖到 VoxelTerrain 的 **Observer Node** 属性，用于观察者位置与视锥剔除；不设则使用 VoxelTerrain 自身位置。
-3. 运行场景：地形会按观察者周围自动加载区块；若配置了 **Save Directory**，会从磁盘加载已存区块并保存修改过的区块。
+2. 在检查器中可调整 **World Settings** 分组下的种子、视距、存档目录、每帧预算等（见下文）；可选将相机或玩家节点拖到 **Observer Node**，用于观察者位置与视锥剔除。
+3. **编辑器预览**：选中 VoxelTerrain 后，在检查器底部点击 **Preview Terrain** 可在不运行游戏的情况下看到一小块地形；**Clear Preview** 清除预览。运行场景时预览会自动移除。预览使用当前 **Seed**，仅用于布局与调试，不写入存档。
+4. 运行场景：地形会按观察者周围自动加载区块；若配置了 **Save Directory**，会从磁盘加载已存区块并保存修改过的区块。
 
 ---
 
@@ -16,25 +17,27 @@
 
 ### VoxelTerrain（Node3D）
 
+选中 VoxelTerrain 即可在检查器中调整以下内容，无需单独添加 VoxelWorld 节点（未找到 VoxelWorld 时会自动创建并应用这些参数）。
+
 - **Observer Node**：用于驱动加载范围的观察者（如 Camera3D）。若不设置，使用本节点 `GlobalPosition`。
-- 每帧会查找或自动创建 **VoxelWorld**，并调用其 ECS 与渲染；区块的 `MeshInstance3D` 会挂在本节点下。
+- **World Settings**（分组）：
+  - **Seed**：地形生成种子（默认 12345）。
+  - **View Distance In Chunks**：以观察者为中心加载的区块半径（默认 4）。
+  - **Save Directory**：存档目录，空则不存盘；例：`user://saves/world1`。
+  - **Max Spawn Per Frame** / **Max Terrain Gen Per Frame** / **Max Mesh Build Per Frame**：每帧生成与网格预算（默认 2 / 2 / 4）。
+  - **Use Greedy Meshing** / **Use Async Terrain** / **Use Async Mesh**：网格合并与异步选项（默认 true / false / false）。
+  - **Max Chunk Radius**：世界边界，0 表示不限制；超出时 GetBlock 返回 Air，SetBlock 返回 false。
+
+每帧会查找或自动创建 **VoxelWorld**，并调用其 ECS 与渲染；区块的 `MeshInstance3D` 会挂在本节点下。若场景中已有 **VoxelWorld**（如通过唯一名 `%VoxelWorld` 或根节点下名为 `VoxelWorld`），则使用该节点且**不会**用 VoxelTerrain 上的 World Settings 覆盖它；此时需在 VoxelWorld 节点上改生成器与高级选项。
 
 ### VoxelWorld（Node）
 
-可单独挂到场景（如根节点下命名为 `VoxelWorld`），或由 VoxelTerrain 自动创建。主要属性：
+可单独挂到场景（如根节点下命名为 `VoxelWorld`），或由 VoxelTerrain 自动创建。主要属性与 VoxelTerrain 的 World Settings 一致，此外：
 
-| 属性 | 说明 | 默认 |
-|------|------|------|
-| **Seed** | 地形生成种子 | 12345 |
-| **View Distance In Chunks** | 以观察者为中心加载的区块半径（区块数） | 4 |
-| **Save Directory** | 存档目录（空则不存盘）。例：`user://saves/world1` | "" |
-| **Max Spawn Per Frame** | 每帧最多新生成的区块数 | 2 |
-| **Max Terrain Gen Per Frame** | 每帧最多地形生成的区块数 | 2 |
-| **Max Mesh Build Per Frame** | 每帧最多网格重算的区块数 | 4 |
-| **Use Greedy Meshing** | 是否使用 Greedy Meshing 合并面 | true |
-| **Use Async Terrain** | 地形生成是否在工作线程执行 | false |
-| **Use Async Mesh** | 网格生成是否在工作线程执行 | false |
-| **Max Chunk Radius** | 世界边界（0=不限制）。超出时 GetBlock 返回 Air，SetBlock 返回 false | 0 |
+| 属性 | 说明 |
+|------|------|
+| **Block Library** | 可选。方块列表资源，供世界生成器按名称查 ID（见第五节）。 |
+| **Generator** | 自定义地形生成器（代码中赋值）；不赋则使用 DefaultTerrainGenerator。 |
 
 ---
 
@@ -59,10 +62,20 @@
 
 ---
 
-## 五、自定义地形生成
+## 五、方块列表（Block Library）与自定义地形生成
 
-- 实现接口 **IChunkGenerator**（方法 `Generate(chunkPos, data, seed)`），在 `data` 中按区块内坐标写入体素（byte）。
-- 将实例赋给 **VoxelWorld.Generator**；若不赋，使用默认 **DefaultTerrainGenerator**（噪声 + 地表 + 草地/泥土/石头分层）。
+### 方块列表（供生成器使用）
+
+- 新建 **BlockLibrary** 资源：在文件系统中右键 → 新建资源 → 搜索 **BlockLibrary**，创建并保存（如 `block_library.tres`）。
+- 在 BlockLibrary 的 **Blocks** 数组中添加 **BlockLibraryEntry**，每条设置 **Id**（byte）和 **Name**（string）。Id 0 约定为空气；名称供生成器按名查 ID。
+- 将 BlockLibrary 资源拖到 **VoxelWorld** 的 **Block Library** 属性。世界生成器会收到该引用，可通过 `blockLibrary.GetIdByName("Grass")` 等写入体素；未配置时生成器使用内置 `BlockId` 枚举数值。
+
+### 自定义地形生成
+
+- 实现接口 **IChunkGenerator**，方法签名为：  
+  `void Generate(Vector3I chunkPos, VoxelData data, int seed, BlockLibrary blockLibrary = null)`  
+  在 `data` 中按区块内坐标写入体素（byte）。当 `blockLibrary != null` 时可用 `blockLibrary.GetIdByName("名称")` 获取方块 ID；为 null 时使用 `BlockId` 枚举值。
+- 将实例赋给 **VoxelWorld.Generator**；若不赋，使用默认 **DefaultTerrainGenerator**（噪声 + 地表 + 草地/泥土/石头分层；若提供了 BlockLibrary 则按名称解析 Grass/Dirt/Stone，否则用枚举）。
 
 ---
 
