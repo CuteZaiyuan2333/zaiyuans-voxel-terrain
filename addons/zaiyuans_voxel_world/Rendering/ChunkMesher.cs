@@ -9,6 +9,8 @@ namespace ZaiyuansVoxelWorld.Rendering;
 
 /// <summary>
 /// Builds an ArrayMesh from chunk voxel data. Only draws faces between solid and air.
+/// 边界面：邻块未加载时视为实心，不绘制该面，避免过绘；新区块加载后邻块会标 Dirty 重算网格。
+/// Greedy：按面分层，每层内按 (a,b) 合并同 ID 的可见面为四边形。
 /// </summary>
 public sealed class ChunkMesher
 {
@@ -70,10 +72,10 @@ public sealed class ChunkMesher
             int wx = ox + lx, wy = oy + ly, wz = oz + lz;
             for (int f = 0; f < 6; f++)
             {
-                byte neighbor = 0;
-                if (world.TryGetBlockAtWorld(wx + FaceDx[f], wy + FaceDy[f], wz + FaceDz[f], out var nb))
-                    neighbor = nb;
-                if (neighbor != (byte)BlockId.Air) continue;
+                // 邻块未加载时视为实心，不绘制该面，避免区块边缘过绘
+                if (!world.TryGetBlockAtWorld(wx + FaceDx[f], wy + FaceDy[f], wz + FaceDz[f], out var nb))
+                    continue;
+                if (nb != (byte)BlockId.Air) continue;
                 AddFace(vertices, normals, uvs, lx, ly, lz, f, FaceNormals[f]);
             }
         }
@@ -104,24 +106,25 @@ public sealed class ChunkMesher
                     nx = lx + dx; ny = ly + dy; nz = lz + dz;
                     byte block = data.Get(lx, ly, lz);
                     if (block == (byte)BlockId.Air) { slice[a, b] = 0; continue; }
-                    byte neighbor = 0;
-                    if (world.TryGetBlockAtWorld(ox + nx, oy + ny, oz + nz, out var nb))
-                        neighbor = nb;
-                    slice[a, b] = (neighbor == (byte)BlockId.Air) ? block : (byte)0;
+                    // 邻块未加载时视为实心，不绘制该面
+                    bool neighborIsAir = world.TryGetBlockAtWorld(ox + nx, oy + ny, oz + nz, out var nb) && nb == (byte)BlockId.Air;
+                    slice[a, b] = neighborIsAir ? block : (byte)0;
                 }
                 for (int a = 0; a < S; a++)
                 for (int b = 0; b < S; b++)
                 {
                     if (merged[a, b] || slice[a, b] == 0) continue;
                     byte id = slice[a, b];
+                    // 扩展宽度：只合并同 ID 且尚未被合并的格子，避免重叠 quad
                     int w = 1;
-                    while (b + w < S && slice[a, b + w] == id) w++;
+                    while (b + w < S && !merged[a, b + w] && slice[a, b + w] == id) w++;
+                    // 扩展高度：下方整行同 ID 且未合并才扩展
                     int h = 1;
                     while (a + h < S)
                     {
                         bool same = true;
                         for (int bb = 0; bb < w && same; bb++)
-                            same = slice[a + h, b + bb] == id;
+                            same = !merged[a + h, b + bb] && slice[a + h, b + bb] == id;
                         if (!same) break;
                         h++;
                     }
@@ -233,12 +236,13 @@ public sealed class ChunkMesher
                     if (merged[a, b] || slice[a, b] == 0) continue;
                     byte id = slice[a, b];
                     int w = 1;
-                    while (b + w < S && slice[a, b + w] == id) w++;
+                    while (b + w < S && !merged[a, b + w] && slice[a, b + w] == id) w++;
                     int h = 1;
                     while (a + h < S)
                     {
                         bool same = true;
-                        for (int bb = 0; bb < w && same; bb++) same = slice[a + h, b + bb] == id;
+                        for (int bb = 0; bb < w && same; bb++)
+                            same = !merged[a + h, b + bb] && slice[a + h, b + bb] == id;
                         if (!same) break;
                         h++;
                     }

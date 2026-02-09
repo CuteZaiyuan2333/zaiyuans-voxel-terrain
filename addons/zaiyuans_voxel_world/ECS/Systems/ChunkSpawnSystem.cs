@@ -9,6 +9,12 @@ namespace ZaiyuansVoxelWorld.ECS.Systems;
 public sealed class ChunkSpawnSystem : IVoxelSystem
 {
     private static readonly byte[] LoadBuffer = new byte[VoxelConstants.ChunkVolume];
+    private static readonly Vector3I[] NeighborOffsets =
+    {
+        new(-1, 0, 0), new(1, 0, 0),
+        new(0, -1, 0), new(0, 1, 0),
+        new(0, 0, -1), new(0, 0, 1),
+    };
 
     public void Run(VoxelEcsWorld world, double delta, EcsRunContext ctx)
     {
@@ -50,6 +56,15 @@ public sealed class ChunkSpawnSystem : IVoxelSystem
             else
             {
                 world.AddEntity(e, pos, data, new ChunkMesh(), ChunkState.Generating);
+            }
+
+            // 新区块加载后，已存在的邻块必须重新生成网格，否则边界面会错误显示（邻块之前把“未加载”当空气画了面）
+            var p = e.ChunkPos;
+            foreach (var off in NeighborOffsets)
+            {
+                var ne = new ChunkEntity(new Vector3I(p.X + off.X, p.Y + off.Y, p.Z + off.Z));
+                if (world.HasEntity(ne))
+                    world.SetState(ne, ChunkState.Dirty);
             }
         }
     }

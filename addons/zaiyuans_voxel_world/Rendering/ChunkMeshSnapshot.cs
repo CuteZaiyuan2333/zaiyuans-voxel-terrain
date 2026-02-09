@@ -8,6 +8,9 @@ namespace ZaiyuansVoxelWorld.Rendering;
 /// <summary>Read-only snapshot of chunk + 6 neighbor faces for async mesh build. lx, ly, lz in [-1, 32].</summary>
 public sealed class ChunkMeshSnapshot
 {
+    /// <summary>Stored in neighbor face when that chunk is not loaded; mesher treats as solid (no face drawn).</summary>
+    public const byte NeighborNotLoaded = 0xFF;
+
     public const int S = VoxelConstants.ChunkSize;
     public const int FaceSize = S * S;
 
@@ -59,20 +62,20 @@ public sealed class ChunkMeshSnapshot
         for (int ly = 0; ly < S; ly++)
         for (int lz = 0; lz < S; lz++)
         {
-            snapshot.FaceMinX[ly * S + lz] = world.TryGetBlockAtWorld(ox - 1, oy + ly, oz + lz, out var b) ? b : (byte)0;
-            snapshot.FaceMaxX[ly * S + lz] = world.TryGetBlockAtWorld(ox + S, oy + ly, oz + lz, out b) ? b : (byte)0;
+            snapshot.FaceMinX[ly * S + lz] = world.TryGetBlockAtWorld(ox - 1, oy + ly, oz + lz, out var b) ? b : NeighborNotLoaded;
+            snapshot.FaceMaxX[ly * S + lz] = world.TryGetBlockAtWorld(ox + S, oy + ly, oz + lz, out b) ? b : NeighborNotLoaded;
         }
         for (int lx = 0; lx < S; lx++)
         for (int lz = 0; lz < S; lz++)
         {
-            snapshot.FaceMinY[lx * S + lz] = world.TryGetBlockAtWorld(ox + lx, oy - 1, oz + lz, out var b) ? b : (byte)0;
-            snapshot.FaceMaxY[lx * S + lz] = world.TryGetBlockAtWorld(ox + lx, oy + S, oz + lz, out b) ? b : (byte)0;
+            snapshot.FaceMinY[lx * S + lz] = world.TryGetBlockAtWorld(ox + lx, oy - 1, oz + lz, out var b) ? b : NeighborNotLoaded;
+            snapshot.FaceMaxY[lx * S + lz] = world.TryGetBlockAtWorld(ox + lx, oy + S, oz + lz, out b) ? b : NeighborNotLoaded;
         }
         for (int lx = 0; lx < S; lx++)
         for (int ly = 0; ly < S; ly++)
         {
-            snapshot.FaceMinZ[lx * S + ly] = world.TryGetBlockAtWorld(ox + lx, oy + ly, oz - 1, out var b) ? b : (byte)0;
-            snapshot.FaceMaxZ[lx * S + ly] = world.TryGetBlockAtWorld(ox + lx, oy + ly, oz + S, out b) ? b : (byte)0;
+            snapshot.FaceMinZ[lx * S + ly] = world.TryGetBlockAtWorld(ox + lx, oy + ly, oz - 1, out var b) ? b : NeighborNotLoaded;
+            snapshot.FaceMaxZ[lx * S + ly] = world.TryGetBlockAtWorld(ox + lx, oy + ly, oz + S, out b) ? b : NeighborNotLoaded;
         }
         return snapshot;
     }
