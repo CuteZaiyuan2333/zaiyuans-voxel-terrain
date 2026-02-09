@@ -175,7 +175,8 @@ addons/
    - 实现 Chunk 实体、Position/State/VoxelData 组件，以及 Spawn/Mesh/Render/Unload 系统，支持多区块。
 3. **阶段三**：地形与 API  
    - 实现默认地形生成器、`SetBlock`/`GetBlock`、VoxelTerrain 节点与 VoxelWorld 配置。  
-   - 完善 Greedy Meshing 与材质。
+   - 完善 Greedy Meshing 与材质。  
+   - **实现 IVoxelQuery 接口**：GetBlock 已有；补充 **Raycast**、**GetCollidingBoxes**，供 Entity（物理/寻路）与 Gameplay（射线选块）依赖。Entity/Gameplay 模块依赖本阶段提供的 IVoxelQuery。
 4. **阶段四**：优化与扩展  
    - 异步生成、LOD、存档、事件回调、编辑器小工具（如画笔）等。
 

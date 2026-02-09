@@ -41,6 +41,11 @@
 
 - **实现**：VoxelWorld 信号 `ChunkLoaded(cx,cy,cz)`、`ChunkUnloaded(cx,cy,cz)`、`BlockChanged(wx,wy,wz,oldId,newId)`；RunEcs 结束后统一排出并发出。
 
+### 2.6 对外查询接口（IVoxelQuery）
+
+- **目标**：地形插件对外提供 **IVoxelQuery**（GetBlock、Raycast、GetCollidingBoxes），供 Entity/Gameplay 解耦使用。
+- **现状**：GetBlock 已实现；Raycast、GetCollidingBoxes 为计划中扩展（见 VOXEL_TERRAIN_PLAN 阶段三）。
+
 ---
 
 ## 三、性能与规模

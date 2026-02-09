@@ -31,6 +31,7 @@ public partial class VoxelWorld : Node
     [Export] public int MaxChunkRadius { get; set; } = 0;
     /// <summary>Optional block list for generators (look up by name). When null, generators use built-in BlockId.</summary>
     [Export] public BlockLibrary BlockLibrary { get; set; }
+    [Export] public Resource GeneratorResource { get; set; }
     public Vector3 ObserverPosition { get; set; }
     public IChunkGenerator Generator { get; set; }
 
@@ -41,6 +42,18 @@ public partial class VoxelWorld : Node
     {
         Singleton = this;
         EcsWorld = new VoxelEcsWorld();
+
+        if (Generator == null)
+        {
+            if (GeneratorResource != null)
+            {
+                Generator = new ScriptableVoxelGenerator { GeneratorResource = GeneratorResource };
+            }
+            else
+            {
+                Generator = new DefaultTerrainGenerator();
+            }
+        }
         RunContext = new EcsRunContext
         {
             Seed = Seed,
