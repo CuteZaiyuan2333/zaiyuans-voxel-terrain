@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://dg0gqbkrdu50k"]
+
+[ext_resource type="Script" uid="uid://8mts3gk5tvak" path="res://addons/zaiyuans_voxel_world/VoxelTerrain.cs" id="1_1uwqr"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1uwqr"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_lvjdj"]
+sky_material = SubResource("ProceduralSkyMaterial_1uwqr")
+
+[sub_resource type="Environment" id="Environment_rdi1l"]
+background_mode = 2
+sky = SubResource("Sky_lvjdj")
+tonemap_mode = 2
+glow_enabled = true
+
+[node name="Node3D" type="Node3D" unique_id=649516864]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=615007773]
+environment = SubResource("Environment_rdi1l")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1160924262]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
+
+[node name="VoxelTerrain" type="Node3D" parent="." unique_id=1430143752 node_paths=PackedStringArray("ObserverNode")]
+script = ExtResource("1_1uwqr")
+ObserverNode = NodePath("../Camera3D")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=2099509783]
+transform = Transform3D(1, 0, 0, 0, 0.7071068, 0.7071068, 0, -0.7071068, 0.7071068, 0, 64, 64)

@@ -1,0 +1,18 @@
+# Godot-specific ignores
+.godot/
+/android/
+*.uid
+
+# Mono-specific ignores
+bin/
+obj/
+
+# Visual Studio ignores
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+
+# OS-specific ignores
+.DS_Store
+Thumbs.db
