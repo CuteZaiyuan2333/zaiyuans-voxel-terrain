@@ -2,6 +2,7 @@
 .godot/
 /android/
 *.uid
+addons/Godex/
 
 # Mono-specific ignores
 bin/
