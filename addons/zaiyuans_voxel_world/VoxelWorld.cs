@@ -10,7 +10,7 @@ namespace ZaiyuansVoxelWorld;
 /// <summary>
 /// Singleton / service: global voxel world config and SetBlock/GetBlock API.
 /// </summary>
-public partial class VoxelWorld : Node
+public partial class VoxelWorld : Node, IVoxelQuery
 {
     public static VoxelWorld Singleton { get; private set; }
 

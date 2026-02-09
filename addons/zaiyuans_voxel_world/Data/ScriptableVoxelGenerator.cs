@@ -10,14 +10,26 @@ namespace ZaiyuansVoxelWorld.Data;
 /// </summary>
 public sealed class ScriptableVoxelGenerator : IChunkGenerator
 {
-    /// <summary>User-provided Resource (e.g. GDScript extending VoxelGeneratorResource). Not yet used; bridge pending.</summary>
+    /// <summary>User-provided Resource (e.g. GDScript extending VoxelGeneratorResource).</summary>
     public Resource GeneratorResource { get; set; }
 
     private readonly DefaultTerrainGenerator _fallback = new DefaultTerrainGenerator();
 
     public void Generate(Vector3I chunkPos, VoxelData data, int seed, BlockLibrary blockLibrary = null)
     {
-        // TODO Phase 1: Call GeneratorResource._generate(VoxelBufferWrapper, chunkPos) when VoxelBufferWrapper exists.
-        _fallback.Generate(chunkPos, data, seed, blockLibrary);
+        if (GeneratorResource != null && GeneratorResource.HasMethod("_generate_chunk"))
+        {
+            var wrapper = new VoxelBufferWrapper();
+            wrapper.SetData(data);
+            
+            // Call GDScript: _generate_chunk(buffer, chunk_pos)
+            // Note: blockLibrary and seed are not passed yet, could be added to wrapper or args.
+            // For now specific plan says: _generate_chunk(buffer: VoxelBufferWrapper, chunk_pos: Vector3i)
+            GeneratorResource.Call("_generate_chunk", wrapper, chunkPos);
+        }
+        else
+        {
+            _fallback.Generate(chunkPos, data, seed, blockLibrary);
+        }
     }
 }
