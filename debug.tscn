@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://dg0gqbkrdu50k"]
 
 [ext_resource type="Script" uid="uid://8mts3gk5tvak" path="res://addons/zaiyuans_voxel_world/VoxelTerrain.cs" id="1_1uwqr"]
+[ext_resource type="Script" uid="uid://b6dhogrpjctxb" path="res://addons/zaiyuans_voxel_entity/Entities/VoxelPlayer.cs" id="2_lvjdj"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1uwqr"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -29,7 +30,9 @@ shadow_enabled = true
 
 [node name="VoxelTerrain" type="Node3D" parent="." unique_id=1430143752 node_paths=PackedStringArray("ObserverNode")]
 script = ExtResource("1_1uwqr")
-ObserverNode = NodePath("../Camera3D")
+ObserverNode = NodePath("../VoxelPlayer")
 
-[node name="Camera3D" type="Camera3D" parent="." unique_id=2099509783]
-transform = Transform3D(1, 0, 0, 0, 0.7071068, 0.7071068, 0, -0.7071068, 0.7071068, 0, 64, 64)
+[node name="VoxelPlayer" type="CharacterBody3D" parent="." unique_id=2088333299]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 14, 0)
+script = ExtResource("2_lvjdj")
+metadata/_custom_type_script = "uid://b6dhogrpjctxb"
