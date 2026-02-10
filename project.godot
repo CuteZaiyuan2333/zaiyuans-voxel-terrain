@@ -48,7 +48,9 @@ move_right={
 
 [physics]
 
+3d/run_on_separate_thread=true
 3d/physics_engine="Jolt Physics"
+common/physics_interpolation=true
 
 [plugins]
 
@@ -62,15 +64,15 @@ zaiyuans_voxel_entity={
 [rendering]
 
 textures/canvas_textures/default_texture_repeat=1
-driver/threads/thread_model=2
 lights_and_shadows/use_physical_light_units=true
+lights_and_shadows/directional_shadow/soft_shadow_filter_quality=5
+lights_and_shadows/positional_shadow/soft_shadow_filter_quality=5
 global_illumination/voxel_gi/quality=1
 textures/default_filters/anisotropic_filtering_level=4
 camera/depth_of_field/depth_of_field_bokeh_shape=2
 camera/depth_of_field/depth_of_field_bokeh_quality=3
 environment/ssao/quality=4
 environment/ssil/quality=4
-anti_aliasing/quality/msaa_2d=3
 anti_aliasing/quality/msaa_3d=3
 anti_aliasing/quality/use_debanding=true
 textures/decals/filter=5

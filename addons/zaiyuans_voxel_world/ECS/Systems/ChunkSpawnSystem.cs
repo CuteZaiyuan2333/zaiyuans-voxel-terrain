@@ -64,7 +64,16 @@ public sealed class ChunkSpawnSystem : IVoxelSystem
             {
                 var ne = new ChunkEntity(new Vector3I(p.X + off.X, p.Y + off.Y, p.Z + off.Z));
                 if (world.HasEntity(ne))
-                    world.SetState(ne, ChunkState.Dirty);
+                {
+                    // Fix: Do not interrupt chunks that are currently generating terrain data.
+                    // Doing so would cause them to be skipped by the terrain gen system (which expects Generating state)
+                    // and rendered as empty meshes (because Dirty state assumes data is ready).
+                    // Once they finish generating, they will mark themselves and neighbors as Dirty anyway.
+                    if (world.GetState(ne) != ChunkState.Generating)
+                    {
+                        world.SetState(ne, ChunkState.Dirty);
+                    }
+                }
             }
         }
     }
