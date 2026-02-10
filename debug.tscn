@@ -31,6 +31,11 @@ shadow_enabled = true
 [node name="VoxelTerrain" type="Node3D" parent="." unique_id=1430143752 node_paths=PackedStringArray("ObserverNode")]
 script = ExtResource("1_1uwqr")
 ObserverNode = NodePath("../VoxelPlayer")
+MaxSpawnPerFrame = 4
+MaxTerrainGenPerFrame = 4
+MaxMeshBuildPerFrame = 8
+UseAsyncTerrain = true
+UseAsyncMesh = true
 
 [node name="VoxelPlayer" type="CharacterBody3D" parent="." unique_id=2088333299]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 14, 0)

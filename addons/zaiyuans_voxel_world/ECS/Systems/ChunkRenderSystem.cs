@@ -33,13 +33,37 @@ public sealed class ChunkRenderSystem : IVoxelSystem
 
             if (ctx.Camera != null)
             {
-                var center = new Vector3(origin.X + 16, origin.Y + 16, origin.Z + 16);
-                mi.Visible = ctx.Camera.IsPositionInFrustum(center);
+                var originV = new Vector3(origin.X, origin.Y, origin.Z);
+                mi.Visible = IsChunkAabbInFrustum(ctx.Camera, originV);
             }
             else
             {
                 mi.Visible = true;
             }
         }
+    }
+
+    /// <summary>
+    /// 用区块的 AABB 与相机视锥做相交检测，避免仅用中心点判断时在区块边缘错误剔除。
+    /// </summary>
+    private static bool IsChunkAabbInFrustum(Camera3D camera, Vector3 chunkOrigin)
+    {
+        var size = new Vector3(VoxelConstants.ChunkSize, VoxelConstants.ChunkSize, VoxelConstants.ChunkSize);
+        var aabb = new Aabb(chunkOrigin, size);
+        var planes = camera.GetFrustum();
+        foreach (Variant planeVar in planes)
+        {
+            var plane = planeVar.As<Plane>();
+            var n = plane.Normal;
+            // 视锥平面法线朝外，视锥内为负半空间。取 AABB 在法线“负方向”上最远的顶点（最靠近视锥内的点）。
+            // 若该点都在平面正侧 (DistanceTo > 0)，说明整块在视锥外，应剔除。
+            var p = new Vector3(
+                n.X <= 0 ? aabb.End.X : aabb.Position.X,
+                n.Y <= 0 ? aabb.End.Y : aabb.Position.Y,
+                n.Z <= 0 ? aabb.End.Z : aabb.Position.Z);
+            if (plane.DistanceTo(p) > 0)
+                return false;
+        }
+        return true;
     }
 }
