@@ -21,7 +21,7 @@ project/assembly_name="zaiyuan-s-voxel-world"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/Godex/plugin.cfg", "res://addons/SunshineClouds2/plugin.cfg", "res://addons/zaiyuans_voxel_entity/plugin.cfg", "res://addons/zaiyuans_voxel_world/plugin.cfg")
+enabled=PackedStringArray("res://addons/Godex/plugin.cfg", "res://addons/SunshineClouds2/plugin.cfg", "res://addons/zaiyuans_voxel_entity/plugin.cfg", "res://addons/zaiyuans_voxel_gameplay/plugin.cfg", "res://addons/zaiyuans_voxel_world/plugin.cfg")
 
 [input]
 

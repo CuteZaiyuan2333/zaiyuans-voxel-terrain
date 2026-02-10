@@ -8,16 +8,16 @@ namespace ZaiyuansVoxelEntity.AI
 {
 	public class VoxelPathfinder
 	{
-		private VoxelWorld _world;
+		private readonly IVoxelQuery _query;
 
-		public VoxelPathfinder(VoxelWorld world)
+		public VoxelPathfinder(IVoxelQuery query)
 		{
-			_world = world;
+			_query = query;
 		}
 
 		public List<Vector3I> FindPath(Vector3I start, Vector3I end, int maxIterations = 5000)
 		{
-			if (_world == null) return new List<Vector3I>();
+			if (_query == null) return new List<Vector3I>();
 
 			var openSet = new PriorityQueue<Vector3I, float>();
 			openSet.Enqueue(start, 0);
@@ -152,7 +152,7 @@ namespace ZaiyuansVoxelEntity.AI
 
 		private bool IsSolid(Vector3I pos)
 		{
-			return _world.GetBlock(pos) != BlockId.Air;
+			return _query.GetBlock(pos) != BlockId.Air;
 		}
 	}
 }

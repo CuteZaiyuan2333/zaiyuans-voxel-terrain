@@ -17,21 +17,21 @@ namespace ZaiyuansVoxelEntity.Physics
 
 	public class VoxelPhysicsEngine
 	{
-		private VoxelWorld _world;
-		
+		private IVoxelQuery _query;
+
 		public float AutoJumpHeight { get; set; } = 1.1f;
 		public bool EnableAutoJump { get; set; } = true;
 
-		public VoxelPhysicsEngine(VoxelWorld world = null)
+		public VoxelPhysicsEngine(IVoxelQuery query = null)
 		{
-			_world = world ?? VoxelWorld.Singleton;
+			_query = query ?? VoxelWorld.Singleton;
 		}
 
 		public MoveResult Move(Vector3 position, Vector3 velocity, Aabb box, float delta)
 		{
-			if (_world == null) _world = VoxelWorld.Singleton;
-			 // If world is still null, just move without collision
-			if (_world == null) 
+			if (_query == null) _query = VoxelWorld.Singleton;
+			// If query is still null, just move without collision
+			if (_query == null) 
 			{
 				return new MoveResult { Position = position + velocity * delta, Velocity = velocity };
 			}
@@ -211,7 +211,7 @@ namespace ZaiyuansVoxelEntity.Physics
 
 		public bool CheckCollision(Aabb globalBox)
 		{
-			if (_world == null) return false;
+			if (_query == null) return false;
 			
 			// Expand slightly to avoid floating point misses?
 			// Usually shrinking box by epsilon is better to avoid snagging on exact edges,
@@ -240,7 +240,7 @@ namespace ZaiyuansVoxelEntity.Physics
 				{
 					for (int z = minZ; z <= maxZ; z++)
 					{
-						if (_world.GetBlock(new Vector3I(x, y, z)) != BlockId.Air)
+						if (_query.GetBlock(new Vector3I(x, y, z)) != BlockId.Air)
 						{
 							return true;
 						}

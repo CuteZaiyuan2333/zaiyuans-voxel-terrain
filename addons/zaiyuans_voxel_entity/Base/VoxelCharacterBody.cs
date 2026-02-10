@@ -1,6 +1,8 @@
 using Godot;
 using System;
 using ZaiyuansVoxelEntity.Physics;
+using ZaiyuansVoxelWorld;
+using ZaiyuansVoxelWorld.Core;
 
 namespace ZaiyuansVoxelEntity.Base
 {
@@ -18,6 +20,9 @@ namespace ZaiyuansVoxelEntity.Base
 		[Export] public Vector3 AabbSize { get; set; } = new Vector3(0.6f, 1.8f, 0.6f);
 		[Export] public Vector3 AabbOffset { get; set; } = new Vector3(-0.3f, 0, -0.3f);
 
+		/// <summary>Optional: node that implements IVoxelQuery (e.g. VoxelWorld). If empty, uses VoxelWorld.Singleton.</summary>
+		[Export] public NodePath VoxelQuerySourcePath { get; set; }
+
 		protected VoxelPhysicsEngine PhysicsEngine;
 		protected Aabb BodyAabb;
 		
@@ -28,9 +33,20 @@ namespace ZaiyuansVoxelEntity.Base
 		protected bool IsGroundedInternal;
 		public new bool IsOnFloor() => IsGroundedInternal;
 
+		/// <summary>Returns the voxel query to use (from VoxelQuerySourcePath or VoxelWorld.Singleton).</summary>
+		protected IVoxelQuery GetVoxelQuery()
+		{
+			if (VoxelQuerySourcePath != null && !VoxelQuerySourcePath.IsEmpty)
+			{
+				var node = GetNodeOrNull(VoxelQuerySourcePath);
+				if (node is IVoxelQuery q) return q;
+			}
+			return VoxelWorld.Singleton;
+		}
+
 		public override void _Ready()
 		{
-			PhysicsEngine = new VoxelPhysicsEngine();
+			PhysicsEngine = new VoxelPhysicsEngine(GetVoxelQuery());
 			BodyAabb = new Aabb(AabbOffset, AabbSize);
 		}
 

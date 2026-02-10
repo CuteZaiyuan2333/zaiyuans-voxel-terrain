@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using ZaiyuansVoxelEntity.Base;
 using ZaiyuansVoxelEntity.AI;
-using ZaiyuansVoxelWorld;
 
 namespace ZaiyuansVoxelEntity.Entities
 {
@@ -49,9 +48,11 @@ namespace ZaiyuansVoxelEntity.Entities
 
         public override void _PhysicsProcess(double delta)
         {
-            if (_pathfinder == null && VoxelWorld.Singleton != null)
+            if (_pathfinder == null)
             {
-                _pathfinder = new VoxelPathfinder(VoxelWorld.Singleton);
+                var query = GetVoxelQuery();
+                if (query != null)
+                    _pathfinder = new VoxelPathfinder(query);
             }
 
             // Update AI Logic

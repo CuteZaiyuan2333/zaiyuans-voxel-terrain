@@ -1,6 +1,7 @@
 #if TOOLS
 using Godot;
-using System;
+
+namespace ZaiyuansVoxelGameplay;
 
 [Tool]
 public partial class Plugin : EditorPlugin

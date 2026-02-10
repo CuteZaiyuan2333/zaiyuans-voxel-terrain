@@ -177,4 +177,91 @@ public partial class VoxelWorld : Node, IVoxelQuery
             return BlockId.Air;
         return (BlockId)id;
     }
+
+    /// <inheritdoc />
+    public bool Raycast(Vector3 origin, Vector3 direction, float maxDistance, out VoxelRaycastResult result)
+    {
+        result = default;
+        if (EcsWorld == null || direction.LengthSquared() < 1e-10f) return false;
+        Vector3 dir = direction.Normalized();
+        int ix = Mathf.FloorToInt(origin.X);
+        int iy = Mathf.FloorToInt(origin.Y);
+        int iz = Mathf.FloorToInt(origin.Z);
+        int stepX = dir.X >= 0 ? 1 : -1;
+        int stepY = dir.Y >= 0 ? 1 : -1;
+        int stepZ = dir.Z >= 0 ? 1 : -1;
+        float tDeltaX = Mathf.Abs(dir.X) >= 1e-8f ? 1f / Mathf.Abs(dir.X) : float.MaxValue;
+        float tDeltaY = Mathf.Abs(dir.Y) >= 1e-8f ? 1f / Mathf.Abs(dir.Y) : float.MaxValue;
+        float tDeltaZ = Mathf.Abs(dir.Z) >= 1e-8f ? 1f / Mathf.Abs(dir.Z) : float.MaxValue;
+        float tMaxX = dir.X >= 0 ? (ix + 1 - origin.X) * tDeltaX : (origin.X - ix) * tDeltaX;
+        float tMaxY = dir.Y >= 0 ? (iy + 1 - origin.Y) * tDeltaY : (origin.Y - iy) * tDeltaY;
+        float tMaxZ = dir.Z >= 0 ? (iz + 1 - origin.Z) * tDeltaZ : (origin.Z - iz) * tDeltaZ;
+        float t = 0;
+        Vector3 normal = Vector3.Zero;
+        while (t < maxDistance)
+        {
+            var blockId = GetBlock(new Vector3I(ix, iy, iz));
+            if (blockId != BlockId.Air)
+            {
+                Vector3 hitPos = origin + t * dir;
+                Vector3 n = normal;
+                if (n.LengthSquared() < 0.01f) // first voxel hit: normal = face most opposite to ray
+                {
+                    if (Mathf.Abs(dir.X) >= Mathf.Abs(dir.Y) && Mathf.Abs(dir.X) >= Mathf.Abs(dir.Z))
+                        n = new Vector3(-Mathf.Sign(dir.X), 0, 0);
+                    else if (Mathf.Abs(dir.Y) >= Mathf.Abs(dir.Z))
+                        n = new Vector3(0, -Mathf.Sign(dir.Y), 0);
+                    else
+                        n = new Vector3(0, 0, -Mathf.Sign(dir.Z));
+                }
+                result = new VoxelRaycastResult(hitPos, n, new Vector3I(ix, iy, iz), blockId);
+                return true;
+            }
+            float tNext;
+            if (tMaxX <= tMaxY && tMaxX <= tMaxZ)
+            {
+                tNext = tMaxX;
+                normal = new Vector3(-stepX, 0, 0);
+                ix += stepX;
+                tMaxX += tDeltaX;
+            }
+            else if (tMaxY <= tMaxZ)
+            {
+                tNext = tMaxY;
+                normal = new Vector3(0, -stepY, 0);
+                iy += stepY;
+                tMaxY += tDeltaY;
+            }
+            else
+            {
+                tNext = tMaxZ;
+                normal = new Vector3(0, 0, -stepZ);
+                iz += stepZ;
+                tMaxZ += tDeltaZ;
+            }
+            t = tNext;
+        }
+        return false;
+    }
+
+    /// <inheritdoc />
+    public IReadOnlyList<Aabb> GetCollidingBoxes(Aabb box)
+    {
+        var list = new List<Aabb>();
+        if (EcsWorld == null) return list;
+        int minX = Mathf.FloorToInt(box.Position.X);
+        int minY = Mathf.FloorToInt(box.Position.Y);
+        int minZ = Mathf.FloorToInt(box.Position.Z);
+        int maxX = Mathf.FloorToInt(box.Position.X + box.Size.X);
+        int maxY = Mathf.FloorToInt(box.Position.Y + box.Size.Y);
+        int maxZ = Mathf.FloorToInt(box.Position.Z + box.Size.Z);
+        for (int x = minX; x <= maxX; x++)
+        for (int y = minY; y <= maxY; y++)
+        for (int z = minZ; z <= maxZ; z++)
+        {
+            if (GetBlock(new Vector3I(x, y, z)) == BlockId.Air) continue;
+            list.Add(new Aabb(new Vector3(x, y, z), Vector3.One));
+        }
+        return list;
+    }
 }
