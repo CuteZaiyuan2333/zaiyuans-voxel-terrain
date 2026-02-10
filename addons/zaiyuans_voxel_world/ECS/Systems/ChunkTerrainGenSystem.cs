@@ -89,11 +89,11 @@ public sealed class ChunkTerrainGenSystem : IVoxelSystem
 		{
 			var ne = new ChunkEntity(n);
 			if (world.HasEntity(ne))
-            {
-                // Fix: Do not interrupt chunks that are currently generating terrain.
-                if (world.GetState(ne) != ChunkState.Generating)
-                    world.SetState(ne, ChunkState.Dirty);
-            }
+			{
+				// Fix: Do not interrupt chunks that are currently generating terrain.
+				if (world.GetState(ne) != ChunkState.Generating)
+					world.SetState(ne, ChunkState.Dirty);
+			}
 		}
 	}
 }

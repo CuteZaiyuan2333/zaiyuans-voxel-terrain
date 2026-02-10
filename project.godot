@@ -21,7 +21,7 @@ project/assembly_name="zaiyuan-s-voxel-world"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/Godex/plugin.cfg", "res://addons/zaiyuans_voxel_entity/plugin.cfg", "res://addons/zaiyuans_voxel_world/plugin.cfg")
+enabled=PackedStringArray("res://addons/Godex/plugin.cfg", "res://addons/SunshineClouds2/plugin.cfg", "res://addons/zaiyuans_voxel_entity/plugin.cfg", "res://addons/zaiyuans_voxel_world/plugin.cfg")
 
 [input]
 
@@ -73,7 +73,6 @@ camera/depth_of_field/depth_of_field_bokeh_shape=2
 camera/depth_of_field/depth_of_field_bokeh_quality=3
 environment/ssao/quality=4
 environment/ssil/quality=4
-anti_aliasing/quality/msaa_3d=3
 anti_aliasing/quality/use_debanding=true
 textures/decals/filter=5
 textures/light_projectors/filter=5
