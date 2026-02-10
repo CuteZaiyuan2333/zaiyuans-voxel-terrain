@@ -72,9 +72,9 @@ public sealed class ChunkMesher
             int wx = ox + lx, wy = oy + ly, wz = oz + lz;
             for (int f = 0; f < 6; f++)
             {
-                // 邻块未加载时视为实心，不绘制该面，避免区块边缘过绘
-                if (!world.TryGetBlockAtWorld(wx + FaceDx[f], wy + FaceDy[f], wz + FaceDz[f], out var nb))
-                    continue;
+                int nwx = wx + FaceDx[f], nwy = wy + FaceDy[f], nwz = wz + FaceDz[f];
+                if (world.GetChunkStateAtWorld(nwx, nwy, nwz) == ChunkState.Generating) continue;
+                if (!world.TryGetBlockAtWorld(nwx, nwy, nwz, out var nb)) continue;
                 if (nb != (byte)BlockId.Air) continue;
                 AddFace(vertices, normals, uvs, lx, ly, lz, f, FaceNormals[f]);
             }
@@ -106,8 +106,9 @@ public sealed class ChunkMesher
                     nx = lx + dx; ny = ly + dy; nz = lz + dz;
                     byte block = data.Get(lx, ly, lz);
                     if (block == (byte)BlockId.Air) { slice[a, b] = 0; continue; }
-                    // 邻块未加载时视为实心，不绘制该面
-                    bool neighborIsAir = world.TryGetBlockAtWorld(ox + nx, oy + ny, oz + nz, out var nb) && nb == (byte)BlockId.Air;
+                    int nwx = ox + nx, nwy = oy + ny, nwz = oz + nz;
+                    if (world.GetChunkStateAtWorld(nwx, nwy, nwz) == ChunkState.Generating) { slice[a, b] = 0; continue; }
+                    bool neighborIsAir = world.TryGetBlockAtWorld(nwx, nwy, nwz, out var nb) && nb == (byte)BlockId.Air;
                     slice[a, b] = neighborIsAir ? block : (byte)0;
                 }
                 for (int a = 0; a < S; a++)

@@ -58,25 +58,37 @@ public sealed class ChunkMeshSnapshot
             FaceMaxZ = new byte[FaceSize],
         };
         data.AsSpan().Slice(0, VoxelConstants.ChunkVolume).CopyTo(snapshot.Chunk);
-        int ox = e.ChunkPos.X * S, oy = e.ChunkPos.Y * S, oz = e.ChunkPos.Z * S;
+        int cx = e.ChunkPos.X, cy = e.ChunkPos.Y, cz = e.ChunkPos.Z;
+        int ox = cx * S, oy = cy * S, oz = cz * S;
         for (int ly = 0; ly < S; ly++)
         for (int lz = 0; lz < S; lz++)
         {
-            snapshot.FaceMinX[ly * S + lz] = world.TryGetBlockAtWorld(ox - 1, oy + ly, oz + lz, out var b) ? b : NeighborNotLoaded;
-            snapshot.FaceMaxX[ly * S + lz] = world.TryGetBlockAtWorld(ox + S, oy + ly, oz + lz, out b) ? b : NeighborNotLoaded;
+            snapshot.FaceMinX[ly * S + lz] = NeighborBlockOrNotLoaded(world, cx - 1, cy, cz, ox - 1, oy + ly, oz + lz);
+            snapshot.FaceMaxX[ly * S + lz] = NeighborBlockOrNotLoaded(world, cx + 1, cy, cz, ox + S, oy + ly, oz + lz);
         }
         for (int lx = 0; lx < S; lx++)
         for (int lz = 0; lz < S; lz++)
         {
-            snapshot.FaceMinY[lx * S + lz] = world.TryGetBlockAtWorld(ox + lx, oy - 1, oz + lz, out var b) ? b : NeighborNotLoaded;
-            snapshot.FaceMaxY[lx * S + lz] = world.TryGetBlockAtWorld(ox + lx, oy + S, oz + lz, out b) ? b : NeighborNotLoaded;
+            snapshot.FaceMinY[lx * S + lz] = NeighborBlockOrNotLoaded(world, cx, cy - 1, cz, ox + lx, oy - 1, oz + lz);
+            snapshot.FaceMaxY[lx * S + lz] = NeighborBlockOrNotLoaded(world, cx, cy + 1, cz, ox + lx, oy + S, oz + lz);
         }
         for (int lx = 0; lx < S; lx++)
         for (int ly = 0; ly < S; ly++)
         {
-            snapshot.FaceMinZ[lx * S + ly] = world.TryGetBlockAtWorld(ox + lx, oy + ly, oz - 1, out var b) ? b : NeighborNotLoaded;
-            snapshot.FaceMaxZ[lx * S + ly] = world.TryGetBlockAtWorld(ox + lx, oy + ly, oz + S, out b) ? b : NeighborNotLoaded;
+            snapshot.FaceMinZ[lx * S + ly] = NeighborBlockOrNotLoaded(world, cx, cy, cz - 1, ox + lx, oy + ly, oz - 1);
+            snapshot.FaceMaxZ[lx * S + ly] = NeighborBlockOrNotLoaded(world, cx, cy, cz + 1, ox + lx, oy + ly, oz + S);
         }
         return snapshot;
+    }
+
+    /// <summary>
+    /// 邻块未加载或仍为 Generating 时视为实心(NeighborNotLoaded)，不画边界面，避免“表面下”多画。
+    /// </summary>
+    private static byte NeighborBlockOrNotLoaded(VoxelEcsWorld world, int ncx, int ncy, int ncz, int wx, int wy, int wz)
+    {
+        var ne = new ChunkEntity(new Vector3I(ncx, ncy, ncz));
+        if (!world.HasEntity(ne)) return NeighborNotLoaded;
+        if (world.GetState(ne) == ChunkState.Generating) return NeighborNotLoaded;
+        return world.TryGetBlockAtWorld(wx, wy, wz, out var b) ? b : NeighborNotLoaded;
     }
 }

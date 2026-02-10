@@ -39,6 +39,10 @@ public static class AsyncChunkJobs
     public static void EnqueueCompletedMesh(MeshBuildResult r) => CompletedMesh.Enqueue(r);
     public static bool TryDequeueMesh(out MeshBuildResult r) => CompletedMesh.TryDequeue(out r);
 
+    /// <summary>Terrain gen failure: enqueue result with Data=null so main thread can decrement in-flight and retry.</summary>
+    public static void EnqueueFailedTerrain(ChunkEntity e) =>
+        EnqueueCompletedTerrain(new TerrainGenResult { Entity = e, Data = null });
+
     public static void StartTerrainJob(ChunkEntity e, Vector3I chunkPos, int seed, IChunkGenerator generator, BlockLibrary blockLibrary = null)
     {
         Task.Run(() =>
@@ -54,6 +58,7 @@ public static class AsyncChunkJobs
             catch (Exception ex)
             {
                 GD.PrintErr($"[AsyncChunkJobs] Terrain gen failed for chunk {chunkPos}: {ex.Message}");
+                EnqueueFailedTerrain(e);
             }
         });
     }

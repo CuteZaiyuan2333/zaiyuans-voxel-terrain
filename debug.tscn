@@ -14,7 +14,15 @@ sky_material = SubResource("ProceduralSkyMaterial_1uwqr")
 background_mode = 2
 sky = SubResource("Sky_lvjdj")
 tonemap_mode = 2
+ssr_enabled = true
+ssao_enabled = true
+ssil_enabled = true
+sdfgi_enabled = true
+sdfgi_use_occlusion = true
 glow_enabled = true
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.005
+volumetric_fog_sky_affect = 0.5
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_txpwr"]
 
@@ -31,9 +39,7 @@ shadow_enabled = true
 [node name="VoxelTerrain" type="Node3D" parent="." unique_id=1430143752 node_paths=PackedStringArray("ObserverNode")]
 script = ExtResource("1_1uwqr")
 ObserverNode = NodePath("../VoxelPlayer")
-MaxSpawnPerFrame = 4
-MaxTerrainGenPerFrame = 4
-MaxMeshBuildPerFrame = 8
+MaxMeshBuildPerFrame = 1
 UseAsyncTerrain = true
 UseAsyncMesh = true
 

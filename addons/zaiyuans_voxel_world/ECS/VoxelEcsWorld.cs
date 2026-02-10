@@ -87,6 +87,16 @@ public sealed class VoxelEcsWorld
         }
     }
 
+    /// <summary>State of the chunk containing (wx, wy, wz). Returns Empty if chunk not loaded.</summary>
+    public ChunkState GetChunkStateAtWorld(int wx, int wy, int wz)
+    {
+        int cx = VoxelConstants.WorldToChunkCoord(wx);
+        int cy = VoxelConstants.WorldToChunkCoord(wy);
+        int cz = VoxelConstants.WorldToChunkCoord(wz);
+        var e = new ChunkEntity(new Vector3I(cx, cy, cz));
+        return GetState(e);
+    }
+
     /// <summary>Get block at world position. Returns 0 (Air) if chunk not loaded.</summary>
     public bool TryGetBlockAtWorld(int wx, int wy, int wz, out byte blockId)
     {

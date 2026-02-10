@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Godot;
+using ZaiyuansVoxelWorld.Core;
 using ZaiyuansVoxelWorld.ECS;
 using ZaiyuansVoxelWorld.ECS.Components;
 using ZaiyuansVoxelWorld.Rendering;
@@ -47,11 +49,10 @@ public sealed class ChunkMeshSystem : IVoxelSystem
 
         if (ctx.UseAsyncMesh)
         {
-            // Submit async mesh jobs for Dirty chunks (budget and in-flight limit)
-            foreach (var e in world.AllEntities())
+            var dirtySorted = CollectDirtySorted(world, ctx);
+            foreach (var e in dirtySorted)
             {
                 if (budget <= 0 || ctx.MeshInFlightCount >= AsyncChunkJobs.MaxMeshInFlight) break;
-                if (world.GetState(e) != ChunkState.Dirty) continue;
                 if (ctx.MeshSubmitted.Contains(e)) continue;
 
                 var pos = world.GetPosition(e);
@@ -63,11 +64,9 @@ public sealed class ChunkMeshSystem : IVoxelSystem
                 ctx.MeshInFlightCount++;
                 budget--;
             }
-            // Remaining budget: sync build for Dirty chunks not yet submitted
-            foreach (var e in world.AllEntities())
+            foreach (var e in dirtySorted)
             {
                 if (budget <= 0) break;
-                if (world.GetState(e) != ChunkState.Dirty) continue;
                 if (ctx.MeshSubmitted.Contains(e)) continue;
 
                 var data = world.GetVoxelData(e);
@@ -83,11 +82,10 @@ public sealed class ChunkMeshSystem : IVoxelSystem
             return;
         }
 
-        // Sync-only path
-        foreach (var e in world.AllEntities())
+        var syncDirty = CollectDirtySorted(world, ctx);
+        foreach (var e in syncDirty)
         {
             if (budget <= 0) break;
-            if (world.GetState(e) != ChunkState.Dirty) continue;
 
             var data = world.GetVoxelData(e);
             var pos = world.GetPosition(e);
@@ -99,5 +97,25 @@ public sealed class ChunkMeshSystem : IVoxelSystem
             world.SetState(e, ChunkState.Ready);
             budget--;
         }
+    }
+
+    private static List<ChunkEntity> CollectDirtySorted(VoxelEcsWorld world, EcsRunContext ctx)
+    {
+        const int S = VoxelConstants.ChunkSize;
+        var list = new List<ChunkEntity>();
+        foreach (var e in world.AllEntities())
+        {
+            if (world.GetState(e) != ChunkState.Dirty) continue;
+            list.Add(e);
+        }
+        list.Sort((a, b) =>
+        {
+            var pa = world.GetPosition(a).Value;
+            var pb = world.GetPosition(b).Value;
+            float da = (ctx.ObserverPosition - new Vector3(pa.X * S + S * 0.5f, pa.Y * S + S * 0.5f, pa.Z * S + S * 0.5f)).LengthSquared();
+            float db = (ctx.ObserverPosition - new Vector3(pb.X * S + S * 0.5f, pb.Y * S + S * 0.5f, pb.Z * S + S * 0.5f)).LengthSquared();
+            return da.CompareTo(db);
+        });
+        return list;
     }
 }
